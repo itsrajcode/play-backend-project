@@ -7,7 +7,14 @@ import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 const registerUser = asyncHandler(async (req, res, next) => {
   const { username, email, fullName, password } = req.body;
   const avatarFile = req.files?.avatar?.[0];
-  const coverImageFile = req.files?.coverImage?.[0];
+  let coverImageFile;
+  if (
+    req.files &&
+    Array.isArray(req.files.coverImage) &&
+    req.files.coverImage.length > 0
+  ) {
+    coverImageFile = req.files.coverImage[0];
+  }
 
   if (!username || !email || !fullName || !password || !avatarFile) {
     return next(new ApiError(400, "Please provide all required fields"));
