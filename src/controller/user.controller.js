@@ -126,4 +126,4 @@ const loginUser = asyncHandler(async (req, res, next) => {
 const logoutUser = asyncHandler(async (req, res, next) => {
   const { refreshToken } = req.cookies;
 });
-export { registerUser, loginUser };
+export { registerUser, loginUser, logoutUser };
