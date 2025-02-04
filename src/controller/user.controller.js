@@ -81,7 +81,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
 const loginUser = asyncHandler(async (req, res, next) => {
   const { email, username, password } = req.body;
 
-  if (!username || !email) {
+  if (!(username || email)) {
     return next(new ApiError(400, "username or email is required"));
   }
   if (!password) {
@@ -145,4 +145,11 @@ const logoutUser = asyncHandler(async (req, res, next) => {
 .clearCookie("refreshToken", options)
 .json(new ApiResponse(200, "User logged out successfully"));
 });
+
+const refreshAccessToken = asyncHandler(async (req, res, next) => {
+  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+  if (!incomingRefreshToken) {
+    return next(new ApiError(401, "Refresh token is required"));
+  }
+})
 export { registerUser, loginUser, logoutUser };
