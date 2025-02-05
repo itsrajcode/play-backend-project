@@ -240,6 +240,15 @@ const updateAvatar = asyncHandler(async (req, res, next) => {
   if (!avatarLocalpath) {
     return next(new ApiError(400, "avatar file is missing"));
   }
+  await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: { avatar: "" },
+    },
+    {
+      new: true,
+    }
+  );
   const avatar = await uploadOnCloudinary(avatarLocalpath);
   if (!avatar.url) {
     return next(new ApiError(400, "Error uploading avatar"));
@@ -263,6 +272,15 @@ const updateCoverImage = asyncHandler(async (req, res, next) => {
   if (!coverImageLocalpath) {
     return next(new ApiError(400, "cover image file is missing"));
   }
+  await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: { coverImage: "" },
+    },
+    {
+      new: true,
+    }
+  );
   const coverImage = await uploadOnCloudinary(coverImageLocalpath);
   if (!coverImage.url) {
     return next(new ApiError(400, "Error uploading cover image"));
