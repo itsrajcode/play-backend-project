@@ -222,9 +222,7 @@ const updateAccountDetails = asyncHandler(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
-      $set:{username: username.toLowerCase(),
-      email,
-      fullName,}
+      $set: { username: username.toLowerCase(), email, fullName },
     },
     {
       new: true,
@@ -237,6 +235,28 @@ const updateAccountDetails = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, "Account details updated successfully", user));
 });
 
+const updateAvatar = asyncHandler(async (req, res, next) => {
+  const avatarLocalpath = req.file?.path;
+  if (!avatarLocalpath) {
+    return next(new ApiError(400, "avatar file is missing"));
+  }
+  const avatar = await uploadOnCloudinary(avatarLocalpath);
+  if (!avatar.url) {
+    return next(new ApiError(400, "Error uploading avatar"));
+  }
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: { avatar: avatar.url },
+    },
+    {
+      new: true,
+    }
+  ).select("-password -refreshToken");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Avatar updated successfully", user));
+});
 
 export {
   registerUser,
@@ -246,4 +266,5 @@ export {
   changeCurrentPassword,
   getCurrentUser,
   updateAccountDetails,
+  updateAvatar,
 };
