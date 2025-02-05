@@ -299,6 +299,62 @@ const updateCoverImage = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, "Cover image updated successfully", user));
 });
 
+const getUserChannelProfile = asyncHandler(async (req, res, next) => {
+  const { username } = req.params;
+  if (!username?.trim()) {
+    return next(new ApiError(400, "Please provide username"));
+  }
+  const channel = await User.aggregate([
+    {
+      $match: {
+        username: username?.toLowerCase(),
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribeTo",
+      },
+    },
+    {
+      $addFields: {
+        subscribersCount: { $size: "$subscribers" },
+        subscribeToCount: { $size: "$subscribeTo" },
+        isSubscribed: {
+          $cond: {
+            if: {
+              $in: [req.user?._id, "$subscribers.subscriber"],
+            },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        fullName: 1,
+        username: 1,
+        avatar: 1,
+        coverImage: 1,
+        subscribersCount: 1,
+        subscribeToCount: 1,
+        isSubscribed: 1,
+      },
+    },
+  ]);
+});
+
 export {
   registerUser,
   loginUser,
@@ -309,4 +365,5 @@ export {
   updateAccountDetails,
   updateAvatar,
   updateCoverImage,
+  getUserChannelProfile,
 };
