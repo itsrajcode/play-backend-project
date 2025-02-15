@@ -67,4 +67,25 @@ const updateTweet = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, "Tweet updated Successfully", updatedTweet));
 });
 
-export { createTweet, getTweets, updateTweet };
+const deleteTweet = asyncHandler(async (req, res, next) => {
+  const tweetId = req.params;
+  const userId = req.user._id;
+  if (!isValidObjectId(tweetId)) {
+    return next(new ApiError(400, "Invalid tweet ID"));
+  }
+  const tweet = await Tweet.findById(tweetId);
+  if (!tweet) {
+    return next(new ApiError(404, "Tweet not found"));
+  }
+  if (tweet.owner.toString() !== userId.toString()) {
+    return next(new ApiError(403, "You can only delete your own tweets"));
+  }
+  const deletedTweet = await Tweet.findByIdAndDelete(tweetId);
+  if (!deletedTweet) {
+    return next(new ApiError(500, "Something went wrong while deleting tweet"));
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Tweet deleted successfully", deletedTweet));
+});
+export { createTweet, getTweets, updateTweet, deleteTweet };
