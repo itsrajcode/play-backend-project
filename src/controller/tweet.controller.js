@@ -34,4 +34,37 @@ const getTweets = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, "Tweets fetched successfully", tweets));
 });
 
-export { createTweet, getTweets };
+const updateTweet = asyncHandler(async (req, res, next) => {
+  const { tweetId } = req.params;
+  const { content } = req.body;
+  const userId = req.user._id;
+  if (!isValidObjectId(tweetId)) {
+    return next(new ApiError(400, "Invalid twwetID "));
+  }
+  const tweet = await Tweet.findById(tweetId);
+  if (!tweet) {
+    return next(ApiError(404, "twwet not found"));
+  }
+  if (tweet.owner.toString() !== userId.toString()) {
+    return next(new ApiError(403, "You can only update your own tweets"));
+  }
+  const updatedTweet = await Tweet.findByIdAndUpdate(
+    tweetId,
+    {
+      $set: {
+        content,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+  if (!updatedTweet) {
+    return next(new ApiError(500, "Something went wrong while updating tweet"));
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Tweet updated Successfully", updatedTweet));
+});
+
+export { createTweet, getTweets, updateTweet };
